@@ -1,0 +1,22 @@
+[project]
+name = "loadi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "chrishalcrow", email = "chrishalcrow@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.3.3",
+    "polars>=1.37.1",
+    "pynapple>=0.10.2",
+    "spikeinterface>=0.103.2",
+]
+
+[project.scripts]
+loadi = "loadi:main"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
