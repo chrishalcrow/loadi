@@ -112,7 +112,7 @@ class JunjiSession(BaseSession):
 
     def create_analyzer(self) -> si.SortingAnalyzer:
 
-        si.set_global_job_kwargs(n_jobs=8)
+        si.set_global_job_kwargs(n_jobs=2)
 
         sort = self.make_sorting()
         rec = self.get_ephys()
