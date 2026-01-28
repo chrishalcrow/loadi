@@ -13,16 +13,26 @@ class PositionDict(TypedDict):
 
 class JunjiSession(BaseSession):
 
-    def __init__(self, mouse, day, session, active_projects_path="/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/"):
+    def __init__(self, mouse, day, session_type, active_projects_path="/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/"):
         self.mouse = mouse
         self.day = day
-        self.session = session
+        self.session_type = session_type
         self.active_projects_path = Path(active_projects_path)
         self.cache = {}
 
     def _get_session_folder(self) -> Path:
-        session_folder = Path('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/Junji/Data/2022cohort1/openfield/M8_D24_2022-08-22_15-56-58')
-        return session_folder
+        session_type_folders = [
+            self.active_projects_path / "Junji/Data/2019cohort1/" / self.session_type,
+            self.active_projects_path / "Junji/Data/2021cohort1/" / self.session_type,
+            self.active_projects_path / "Junji/Data/2021cohort2/" / self.session_type,
+            self.active_projects_path / "Junji/Data/2022cohort1/" / self.session_type,
+        ]
+        for session_type_folder in session_type_folders:
+            session_folder_list = list(session_type_folder.glob(f'M{self.mouse}_D{self.day}*'))
+            if len(session_folder_list) > 0:
+                return session_folder_list[0]
+
+        raise FileNotFoundError("Can't find session folder.")
 
     def get_clusters_path(self) -> Path:
         session_folder = self._get_session_folder()

@@ -2,10 +2,17 @@ from loadi.loaders.junji import JunjiSession
 
 mouse = 8
 day = 24
-session = 'openfield'
+session_type = 'openfield'
 
-session = JunjiSession(mouse, day, session, active_projects_path="/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/")
+analyzer_output_path = f"sub-{mouse}_day-{day}_ses-{session_type}_analyzer"
 
+session = JunjiSession(mouse, day, session_type, active_projects_path="/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/")
+
+print("Loading data...")
 clusters = session.get_clusters()
+
+print("Making analyzer...")
 analyzer = session.create_analyzer()
-analyzer.save_as(format="binary_folder", folder=f"sub-{mouse}_day-{day}_ses-{session}_analyzer")
+
+print("Saving analyzer...")
+analyzer.save_as(format="binary_folder", folder=analyzer_output_path)
