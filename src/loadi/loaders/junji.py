@@ -112,7 +112,7 @@ class JunjiSession(BaseSession):
 
     def create_analyzer(self) -> si.SortingAnalyzer:
 
-        si.set_global_job_kwargs(n_jobs=2)
+        si.set_global_job_kwargs(n_jobs=1)
 
         sort = self.make_sorting()
         rec = self.get_ephys()
@@ -121,12 +121,8 @@ class JunjiSession(BaseSession):
         analyzer.compute({
                 'unit_locations': {},
                 'random_spikes': {},
-                'noise_levels': {},
                 'templates': {},
-                'spike_amplitudes': {},
-                'amplitude_scalings': {},
                 'isi_histograms': {},
-                'spike_locations': {},
                 'correlograms': {},
                 'template_similarity': {'method': 'l2'},
                 'quality_metrics': {},
