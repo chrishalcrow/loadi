@@ -6,17 +6,19 @@ import json
 from typing import TypedDict
 from scipy.io import loadmat
 
-full_data_path = Path("/home/nolanlab/Downloads/singlecellanalyses_CA1.mat")
-data_paths_path = Path("/home/nolanlab/Downloads/Q0FG-1X8_paths.json")
-
 class Q0FG1X8Experiment(BaseExperiment):
 
-    def __init__(self):
+    def __init__(
+        self, 
+        full_data_path=Path("/home/nolanlab/Downloads/singlecellanalyses_CA1.mat"), 
+        data_paths_path = Path("/home/nolanlab/Downloads/Q0FG-1X8_paths.json"),
+    ):
 
+        self.full_data_path = full_data_path
         with open(data_paths_path) as f:
             self.data_paths = json.load(f)
 
-            
+
     def get_session(self, mouse, day, session_type):
 
         mouse_dict = self.data_paths.get(mouse)
@@ -31,7 +33,7 @@ class Q0FG1X8Experiment(BaseExperiment):
                   if session_dict is None:
                       raise ValueError(f"No session called {session_type}. Possible mice are {day_dict.keys()}.")
                   else:
-                    return Q0FG1X8Session(mouse, day, session_type, known_data_types=session_dict)
+                    return Q0FG1X8Session(mouse, day, session_type, known_data_types=session_dict, full_data_path=self.full_data_path)
 
 
 class PositionDict(TypedDict):
@@ -40,7 +42,7 @@ class PositionDict(TypedDict):
 
 class Q0FG1X8Session(BaseSession):
 
-    def __init__(self, mouse, date, session, known_data_types = None):
+    def __init__(self, mouse, date, session, known_data_types = None, full_data_path = None):
         self.mouse = mouse
         self.date = date
         self.session = session
