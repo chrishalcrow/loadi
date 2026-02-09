@@ -7,9 +7,82 @@ from typing import TypedDict
 import spikeinterface.full as si
 import numpy as np
 
+deriv_folder = Path('/home/nolanlab/Work/Yiming_Project/Junji_Data/derivatives')
+
 class PositionDict(TypedDict):
     Px: nap.Tsd
     Py: nap.Tsd
+
+
+
+class JunjiGroupSession():
+
+    def __init__(self, mouse, day, active_projects_path="/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/CDBS_SIDB_storage/NolanLab/ActiveProjects/"):
+        self.mouse = mouse
+        self.day = day
+        self.active_projects_path = Path(active_projects_path)
+
+        sessions = []
+        for session_type in ['openfield', 'vr']:
+            sessions.append(JunjiSession(mouse, day, session_type, active_projects_path))
+
+        self.sessions = sessions
+
+
+    def do_sorting(self):
+
+        protocol = "mountainsort5A"
+
+        recs = [session.get_ephys() for session in self.sessions]
+        
+        print(f"{self.sessions=}")
+        split_rec = si.concatenate_recordings(recs).split_by('group')
+        removed_channels_rec = si.detect_and_remove_bad_channels(split_rec)
+        print(removed_channels_rec)
+        sorting = si.run_sorter("mountainsort5", removed_channels_rec, verbose=True, remove_existing_folder=True)
+
+        print(sorting)
+
+        cumulative_samples = 0
+        for rec, session in zip(recs, self.sessions):
+
+            mouseday_deriv_folder = deriv_folder / f"M{self.mouse:02d}/D{self.day:02d}/{session.session_type}/{protocol}"
+            mouseday_deriv_folder.mkdir(parents=True, exist_ok=True)
+
+            # we do all our syncing assuming that t=0 is at the start of the ephys data
+            rec._recording_segments[0].t_start = 0
+
+            recording_total_samples = rec.get_total_samples()
+            one_sorting = {sort_id: sort.frame_slice(cumulative_samples, cumulative_samples+recording_total_samples) for sort_id, sort in sorting.items()}
+            cumulative_samples += recording_total_samples
+
+            analyzer = si.create_sorting_analyzer(
+                recording=si.bandpass_filter(rec.split_by('group')), 
+                sorting=one_sorting, 
+                folder = mouseday_deriv_folder / f"sub-{self.mouse:02d}_day-{self.day:02d}_ses-{session.session_type}_srt-{protocol}_analyzer",
+                format = "binary_folder",
+                peak_sign = "both",
+                radius_um = 70,
+                
+            )
+
+            analyzer.compute({
+                'noise_levels': {},
+                'unit_locations': {},
+                'random_spikes': {},
+                'templates': {},
+                'isi_histograms': {},
+                'waveforms': {},
+                'principal_components': {},
+                'amplitude_scalings': {},
+                'spike_amplitudes': {},
+                'spike_locations': {},
+                'correlograms': {},
+                'template_similarity': {'method': 'l2'},
+                'quality_metrics': {},
+                'template_metrics': {'include_multi_channel_metrics': False},
+            })
+ 
 
 class JunjiSession(BaseSession):
 
@@ -22,7 +95,6 @@ class JunjiSession(BaseSession):
 
     def _get_session_folder(self) -> Path:
         session_type_folders = [
-            self.active_projects_path / "Junji/Data/2019cohort1/" / self.session_type,
             self.active_projects_path / "Junji/Data/2021cohort1/" / self.session_type,
             self.active_projects_path / "Junji/Data/2021cohort2/" / self.session_type,
             self.active_projects_path / "Junji/Data/2022cohort1/" / self.session_type,
@@ -119,10 +191,13 @@ class JunjiSession(BaseSession):
 
         analyzer = si.create_sorting_analyzer(sorting=sort, recording=si.bandpass_filter(rec))
         analyzer.compute({
+                'noise_levels': {},
                 'unit_locations': {},
                 'random_spikes': {},
                 'templates': {},
                 'isi_histograms': {},
+                'waveforms': {},
+                'principal_components': {},
                 'correlograms': {},
                 'template_similarity': {'method': 'l2'},
                 'quality_metrics': {},

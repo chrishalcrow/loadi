@@ -8,14 +8,11 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "numba>=0.63.1",
+    "ipykernel>=7.2.0",
     "pandas>=2.3.3",
     "pynapple>=0.10.2",
     "pyqt5>=5.15.11",
     "pyqtgraph>=0.14.0",
-    "scikit-learn>=1.8.0",
-    "spikeinterface>=0.103.2",
-    "spikeinterface-gui>=0.12.0",
 ]
 
 [project.scripts]
