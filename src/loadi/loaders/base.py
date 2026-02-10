@@ -1,4 +1,9 @@
 import pynapple as nap
+from typing import TypedDict
+
+class PositionDict(TypedDict):
+    Px: nap.Tsd
+    Py: nap.Tsd
 
 class BaseExperiment:
 
