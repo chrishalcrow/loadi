@@ -5,18 +5,20 @@ from pathlib import Path
 import json
 from typing import TypedDict
 from scipy.io import loadmat
+from importlib import resources
 
 class Q0FG1X8Experiment(BaseExperiment):
 
     def __init__(
         self, 
         full_data_path=Path("/home/nolanlab/Downloads/singlecellanalyses_CA1.mat"), 
-        data_paths_path = Path("/home/nolanlab/Downloads/Q0FG-1X8_paths.json"),
     ):
 
         self.full_data_path = full_data_path
-        with open(data_paths_path) as f:
-            self.data_paths = json.load(f)
+        with resources.files('loadi.resources.data_paths').joinpath('Q0FG1X8_2020.json').open('r') as f:
+            data_paths = json.load(f)
+
+        self.data_paths = data_paths
 
 
     def get_session(self, rat_id, day_id, session_type):
