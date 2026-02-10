@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "chrishalcrow", email = "chrishalcrow@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "ipykernel>=7.2.0",
     "pandas>=2.3.3",
