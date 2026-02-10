@@ -24,7 +24,7 @@ class BaseExperiment:
                 """
             else:
                 # If it's a leaf node, just show the key-value pair
-                html += f"<p><strong>{key}:</strong> {value}</p>"
+                html += f"<p><strong>{key}</strong>, loadable data: {value}</p>"
         
         html += "</div>"
         return html

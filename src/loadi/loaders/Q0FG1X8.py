@@ -19,21 +19,27 @@ class Q0FG1X8Experiment(BaseExperiment):
             self.data_paths = json.load(f)
 
 
-    def get_session(self, mouse, day, session_type):
+    def get_session(self, rat_id, day_id, session_type):
 
-        mouse_dict = self.data_paths.get(mouse)
+        if isinstance(rat_id, int):
+            rat_id = str(rat_id)
+
+        if isinstance(day_id, int):
+            day_id = str(day_id)
+
+        mouse_dict = self.data_paths.get(rat_id)
         if mouse_dict is None:
-             raise ValueError(f"No mouse called {mouse}. Possible mice are {self.data_paths.keys()}.")
+             raise ValueError(f"No rat_id {rat_id}. Possible mice are {self.data_paths.keys()}.")
         else:
-             day_dict = mouse_dict.get(day)
+             day_dict = mouse_dict.get(day_id)
              if day_dict is None:
-                 raise ValueError(f"No day called {day}. Possible mice are {mouse_dict.keys()}.")
+                 raise ValueError(f"No day_id {day_id}. Possible mice are {mouse_dict.keys()}.")
              else:
                   session_dict = day_dict.get(session_type)
                   if session_dict is None:
-                      raise ValueError(f"No session called {session_type}. Possible mice are {day_dict.keys()}.")
+                      raise ValueError(f"No session_type called {session_type}. Possible mice are {day_dict.keys()}.")
                   else:
-                    return Q0FG1X8Session(mouse, day, session_type, known_data_types=session_dict, full_data_path=self.full_data_path)
+                    return Q0FG1X8Session(rat_id, day_id, session_type, known_data_types=session_dict, full_data_path=self.full_data_path)
 
 
 class PositionDict(TypedDict):

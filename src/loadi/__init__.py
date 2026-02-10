@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from loadi!")
+from loadi.loaders.Q0FG1X8 import Q0FG1X8Experiment
