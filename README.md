@@ -1,8 +1,20 @@
-To run
+Download the repo
 
 ``` bash
 git clone https://github.com/chrishalcow/loadi
 cd loadi
+```
+
+Then install into your environment:
+
+``` bash
+pip install .
+```
+
+or run directly with `uv` from the loadi directory:
+
+``` bash
+uv run python
 ```
 
 Can be used to load data. E.g:
