@@ -13,13 +13,11 @@ class KanterMoser2025Experiment(BaseExperiment):
         self, 
         containing_folder=Path("/home/nolanlab/Downloads/d-885b4936-9345-43bd-880e-eebc19898ded/"), 
     ):
-
-        self.containing_folder = containing_folder
+        
+        self.containing_folder = Path(containing_folder)
         with resources.files('loadi.resources.data_paths').joinpath('Kanter_Moser_2025.json').open('r') as f:
             data_paths = json.load(f)
-
         self.data_paths = data_paths
-
 
     def get_session(self, rat_id, session_id):
 
@@ -54,7 +52,7 @@ class KanterMoser2025Session(BaseSession):
 
         return header_text + streams_text
 
-    def load_clusters(self) -> nap.TsGroup:
+    def load_units(self) -> nap.TsGroup:
 
         clusters = self.data['units']
 

@@ -1,2 +1,2 @@
-from loadi.loaders.Q0FG1X8 import Q0FG1X8Experiment
+from loadi.loaders.Nagelhus_Moser_2023 import NagelhusMoser2023Experiment
 from loadi.loaders.Kanter_Moser_2025 import KanterMoser2025Experiment

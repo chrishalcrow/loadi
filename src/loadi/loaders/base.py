@@ -9,6 +9,8 @@ class BaseExperiment:
 
     def __init__(self, experiment_structure):
         self.data_paths = experiment_structure
+        self.session_class = BaseSession
+        self.containing_folder = None
 
     def _repr_html_(self):
         return self._generate_html(self.data_paths)
@@ -33,8 +35,22 @@ class BaseExperiment:
         
         html += "</div>"
         return html
+    
+    def get_session():
+        pass
+        
+    def __iter__(self):
+        # We delegate the iteration to our recursive helper
+        return self._walk(self.data_paths, [])
+
+    def _walk(self, current_node, path):
+        if isinstance(current_node, list):
+            yield self.get_session(*path)
+        elif isinstance(current_node, dict):
+            for key, value in current_node.items():
+                yield from self._walk(value, path + [key])
 
 class BaseSession():
 
-    def load_clusters(self) -> nap.TsGroup:
+    def load_units(self) -> nap.TsGroup:
         pass
