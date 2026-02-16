@@ -30,7 +30,7 @@ class JunjiSession(BaseSession):
         ]
         for session_type_folder in session_type_folders:
             print(f"Looking in {session_type_folder}")
-            session_folder_list = list(session_type_folder.glob(f'M{self.mouse}_D{self.day}*'))
+            session_folder_list = list(session_type_folder.glob(f'M{self.mouse}_D{self.day}_*'))
             if len(session_folder_list) > 0:
                 return session_folder_list[0]
 
