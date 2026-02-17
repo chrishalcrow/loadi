@@ -24,9 +24,7 @@ class JunjiSession(BaseSession):
 
     def _get_session_folder(self) -> Path:
         session_type_folders = [
-            self.data_path / "2021cohort1/" / self.session_type,
-            self.data_path / "2021cohort2/" / self.session_type,
-            self.data_path / "2022cohort1/" / self.session_type,
+            self.data_path / self.session_type,
         ]
         for session_type_folder in session_type_folders:
             print(f"Looking in {session_type_folder}")
