@@ -1,5 +1,7 @@
-import pynapple as nap
+import uuid
 from typing import TypedDict
+
+import pynapple as nap
 
 
 class PositionDict(TypedDict):
@@ -16,8 +18,94 @@ class BaseExperiment:
     def __repr__(self):
         return self._generate_terminal_tree(self.data_paths)
 
+    # def _repr_html_(self):
+    #     return self._generate_html(self.data_paths)
+
+    # def _generate_html(self, data):
+    #     html = "<div style='font-family: monospace; margin-left: 20px;'>"
+
+    #     for key, value in data.items():
+    #         if isinstance(value, dict):
+    #             # If the value is a dict, we nest another details tag
+    #             html += f"""
+    #             <details style="margin-bottom: 5px;">
+    #                 <summary style="cursor: pointer; font-weight: bold;">
+    #                     {key}
+    #                 </summary>
+    #                 {self._generate_html(value)}
+    #             </details>
+    #             """
+    #         else:
+    #             # If it's a leaf node, just show the key-value pair
+    #             html += f"<p><strong>{key}</strong>, loadable data: {value}</p>"
+
+    #     html += "</div>"
+    #     return html
+
     def _repr_html_(self):
-        return self._generate_html(self.data_paths)
+        # Create a unique prefix for this specific output to avoid CSS collisions
+        uid = str(uuid.uuid4())[:8]
+
+        # We define the CSS once at the top of the representation
+        style = f"""
+        <style>
+            .nested-{uid} {{ font-family: monospace; }}
+            .nested-{uid} .node {{ margin-bottom: 2px; position: relative; }}
+            /* Hide the actual checkbox */
+            .nested-{uid} .toggle-input {{ display: none; }}
+            /* Style the arrow (the label) */
+            .nested-{uid} .toggle-label {{
+                cursor: pointer;
+                user-select: none;
+                display: inline-block;
+                width: 15px;
+                color: #888;
+                font-size: 12px;
+                transition: transform 0.1s;
+            }}
+            /* The Key Text: Independent of the toggle */
+            .nested-{uid} .key-text {{
+                font-weight: bold;
+                cursor: text;
+                user-select: text;
+            }}
+            /* The hidden content */
+            .nested-{uid} .content {{
+                display: none;
+                margin-left: 18px;
+                border-left: 1px solid #ddd;
+                padding-left: 10px;
+            }}
+            /* Show content and rotate arrow when checkbox is checked */
+            .nested-{uid} .toggle-input:checked ~ .content {{ display: block; }}
+            .nested-{uid} .toggle-input:checked ~ .toggle-label {{  color: #333; }}
+        </style>
+        """
+        return f'<div class="nested-{uid}">{style}{self._generate_html(self.data_paths, uid)}</div>'
+
+    def _generate_html(self, data, uid):
+        html = "<div>"
+        for key, value in data.items():
+            if isinstance(value, dict):
+                node_id = str(uuid.uuid4())[:8]
+                html += f'''
+                <div class="node">
+                    <input type="checkbox" id="{node_id}" class="toggle-input">
+                    <span class="key-text">{key}</span>
+                    <label for="{node_id}" class="toggle-label">▶</label>
+                    <div class="content">{self._generate_html(value, uid)}</div>
+                    
+                </div>
+                '''
+            else:
+                # Standard leaf node (indented to match the arrow spacing)
+                html += f"""
+                <div style="margin-left: 18px; margin-bottom: 2px;">
+                    <span class="key-text">{key}</span>: {value}
+                </div>
+                """
+        html += "</div>"
+        return html
 
     def _generate_terminal_tree(self, data, indent=""):
         lines = []
@@ -42,27 +130,6 @@ class BaseExperiment:
                 )
 
         return "\n".join(lines)
-
-    def _generate_html(self, data):
-        html = "<div style='font-family: monospace; margin-left: 20px;'>"
-
-        for key, value in data.items():
-            if isinstance(value, dict):
-                # If the value is a dict, we nest another details tag
-                html += f"""
-                <details style="margin-bottom: 5px;">
-                    <summary style="cursor: pointer; font-weight: bold;">
-                        {key}
-                    </summary>
-                    {self._generate_html(value)}
-                </details>
-                """
-            else:
-                # If it's a leaf node, just show the key-value pair
-                html += f"<p><strong>{key}</strong>, loadable data: {value}</p>"
-
-        html += "</div>"
-        return html
 
     def get_session():
         pass
