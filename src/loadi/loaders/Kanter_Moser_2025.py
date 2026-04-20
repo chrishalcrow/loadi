@@ -1,11 +1,12 @@
-import pynapple as nap
-from .base import BaseSession, BaseExperiment, PositionDict
-import numpy as np
-from pathlib import Path
 import json
+from importlib import resources
+from pathlib import Path
+
+import numpy as np
+import pynapple as nap
 from scipy.io import loadmat
 
-from importlib import resources
+from .base import BaseExperiment, BaseSession
 
 
 class KanterMoser2025Experiment(BaseExperiment):
@@ -15,7 +16,6 @@ class KanterMoser2025Experiment(BaseExperiment):
             "/home/nolanlab/Downloads/d-885b4936-9345-43bd-880e-eebc19898ded/"
         ),
     ):
-
         self.containing_folder = Path(containing_folder)
         with (
             resources.files("loadi.resources.data_paths")
@@ -26,7 +26,6 @@ class KanterMoser2025Experiment(BaseExperiment):
         self.data_paths = data_paths
 
     def get_session(self, rat_id, session_id):
-
         if isinstance(rat_id, int):
             rat_id = str(rat_id)
 
@@ -63,14 +62,12 @@ class KanterMoser2025Session(BaseSession):
         self.data = nap.load_file(filepath)
 
     def _repr_html_(self):
-
         header_text = f"<b>Rat id</b> {self.mouse}, <b>Session id</b> {self.date}<br />"
         streams_text = f"{self.known_data_types}"
 
         return header_text + streams_text
 
     def load_units(self) -> nap.TsGroup:
-
         clusters = self.data["units"]
 
         # Extract hippocampal units
@@ -82,6 +79,5 @@ class KanterMoser2025Session(BaseSession):
 
         return clusters
 
-    def load_subject_position(self) -> PositionDict:
-
+    def load_subject_position(self):
         return self.data["animal_position"]

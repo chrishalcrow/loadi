@@ -1,14 +1,14 @@
-import pynapple as nap
-from .base import BaseSession, BaseExperiment, PositionDict
-import numpy as np
-from pathlib import Path
 import json
-from scipy.io import loadmat
 from importlib import resources
+from pathlib import Path
+
 import numpy as np
-from spikeinterface.core import NumpySorting
+import pynapple as nap
+from scipy.io import loadmat
+from spikeinterface.core import NumpySorting, aggregate_units
 from spikeinterface.exporters import to_pynapple_tsgroup
-from spikeinterface.core import aggregate_units
+
+from .base import BaseExperiment, BaseSession
 
 
 class ChenBurgess2018Experiment(BaseExperiment):
@@ -56,7 +56,6 @@ class ChenBurgess2018Experiment(BaseExperiment):
         self.session_class = ChenBurgess2018Session
 
     def get_session(self, mouse_id, day_id, session_id):
-
         if isinstance(mouse_id, int):
             mouse_id = str(mouse_id)
 
@@ -113,42 +112,36 @@ class ChenBurgess2018Session(BaseSession):
             self.session_data = data["data"]
 
     def _repr_html_(self):
-
         header_text = f"<b>Mouse</b> {self.mouse}, <b>Date</b> {self.date}, <b>Session</b> {self.session}<br />"
         streams_text = f"{self.known_data_types}"
 
         return header_text + streams_text
 
     def load_units(self) -> nap.TsGroup:
-
         sampling_rate = 30_000
 
         sortings = []
         for tetrode_id in range(8):
-            try:
-                if self.mouse == "2dVR":
-                    tetrode_data = self.session_data["spikeData"][0][int(self.date)][
-                        tetrode_id
-                    ][0]
-                else:
-                    tetrode_data = self.session_data[0]["spikeData"][0][tetrode_id][0]
-                cluster_index = np.transpose(tetrode_data["cut"])[0]
-                spike_timestamps = tetrode_data["timestamp"][:, 0]
-                sample_times = np.round((spike_timestamps) * sampling_rate).astype(int)
-                sort = NumpySorting.from_samples_and_labels(
-                    sample_times, cluster_index, sampling_frequency=30_000
-                )
-                sortings.append(sort)
-            except:
-                continue
+            if self.mouse == "2dVR":
+                tetrode_data = self.session_data["spikeData"][0][int(self.date)][
+                    tetrode_id
+                ][0]
+            else:
+                tetrode_data = self.session_data[0]["spikeData"][0][tetrode_id][0]
+            cluster_index = np.transpose(tetrode_data["cut"])[0]
+            spike_timestamps = tetrode_data["timestamp"][:, 0]
+            sample_times = np.round((spike_timestamps) * sampling_rate).astype(int)
+            sort = NumpySorting.from_samples_and_labels(
+                sample_times, cluster_index, sampling_frequency=30_000
+            )
+            sortings.append(sort)
 
         sorting = aggregate_units(sortings)
         spikes = to_pynapple_tsgroup(sorting)
 
         return spikes
 
-    def load_subject_position(self) -> PositionDict:
-
+    def load_subject_position(self):
         if self.mouse == "2dVR":
             xy = self.session_data["posData"][0][int(self.date)]["xy"][0][0]
             position_timesteps = np.transpose(
@@ -164,7 +157,6 @@ class ChenBurgess2018Session(BaseSession):
         return positions
 
     def load_object_position(self):
-
         x = self.session_data["object_position"][0]["x"][0][0][0]
         y = self.session_data["object_position"][0]["y"][0][0][0]
 

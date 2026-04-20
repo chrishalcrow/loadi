@@ -1,11 +1,12 @@
-import pynapple as nap
-from .base import BaseSession, BaseExperiment, PositionDict
-import numpy as np
-from pathlib import Path
 import json
-from scipy.io import loadmat
 from importlib import resources
+from pathlib import Path
+
+import numpy as np
+import pynapple as nap
 from pymatreader import read_mat
+
+from .base import BaseExperiment, BaseSession
 
 
 class WillsMuessig2023Experiment(BaseExperiment):
@@ -46,7 +47,6 @@ class WillsMuessig2023Experiment(BaseExperiment):
         self.session_class = WillsMuessig2023Session
 
     def get_session(self, subject_id, session_id, session_type):
-
         if isinstance(subject_id, int):
             subject_id = str(subject_id)
 
@@ -100,14 +100,12 @@ class WillsMuessig2023Session(BaseSession):
         self.spike_data = read_mat(containing_folder / "Results.mat")
 
     def _repr_html_(self):
-
         header_text = f"<b>Mouse</b> {self.mouse}, <b>Date</b> {self.date}, <b>Session</b> {self.session}<br />"
         streams_text = f"{self.known_data_types}"
 
         return header_text + streams_text
 
     def load_units(self) -> nap.TsGroup:
-
         mouseday_id = f"{self.mouse}_{self.date}"
         session_index = int(self.session.split("_")[-1])
 
@@ -129,7 +127,6 @@ class WillsMuessig2023Session(BaseSession):
         return spikes
 
     def load_position(self) -> nap.TsdFrame:
-
         position_sampling_rate = 50
         mouseday_id = f"{self.mouse}_{self.date}"
         session_index = int(self.session.split("_")[-1])
@@ -147,7 +144,6 @@ class WillsMuessig2023Session(BaseSession):
         return position
 
     def load_direction(self) -> nap.TsdFrame:
-
         position_sampling_rate = 50
         mouseday_id = f"{self.mouse}_{self.date}"
         session_index = int(self.session.split("_")[-1])

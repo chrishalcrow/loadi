@@ -1,12 +1,4 @@
 import uuid
-from typing import TypedDict
-
-import pynapple as nap
-
-
-class PositionDict(TypedDict):
-    Px: nap.Tsd
-    Py: nap.Tsd
 
 
 class BaseExperiment:
@@ -17,30 +9,6 @@ class BaseExperiment:
 
     def __repr__(self):
         return self._generate_terminal_tree(self.data_paths)
-
-    # def _repr_html_(self):
-    #     return self._generate_html(self.data_paths)
-
-    # def _generate_html(self, data):
-    #     html = "<div style='font-family: monospace; margin-left: 20px;'>"
-
-    #     for key, value in data.items():
-    #         if isinstance(value, dict):
-    #             # If the value is a dict, we nest another details tag
-    #             html += f"""
-    #             <details style="margin-bottom: 5px;">
-    #                 <summary style="cursor: pointer; font-weight: bold;">
-    #                     {key}
-    #                 </summary>
-    #                 {self._generate_html(value)}
-    #             </details>
-    #             """
-    #         else:
-    #             # If it's a leaf node, just show the key-value pair
-    #             html += f"<p><strong>{key}</strong>, loadable data: {value}</p>"
-
-    #     html += "</div>"
-    #     return html
 
     def _repr_html_(self):
         # Create a unique prefix for this specific output to avoid CSS collisions
@@ -147,5 +115,5 @@ class BaseExperiment:
 
 
 class BaseSession:
-    def load_units(self) -> nap.TsGroup:
+    def load_units(self):
         pass

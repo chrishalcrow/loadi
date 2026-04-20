@@ -1,17 +1,14 @@
-import pynapple as nap
-import probeinterface as pi
-from .base import BaseSession
 from pathlib import Path
-import pandas as pd
 from typing import TypedDict
+
+import pandas as pd
+import probeinterface as pi
+import pynapple as nap
 import spikeinterface.full as si
 
+from .base import BaseSession
+
 deriv_folder = Path("/home/nolanlab/Work/Yiming_Project/Junji_Data/derivatives")
-
-
-class PositionDict(TypedDict):
-    Px: nap.Tsd
-    Py: nap.Tsd
 
 
 class TerisSession(BaseSession):
@@ -56,7 +53,6 @@ class TerisSession(BaseSession):
         return ephys_folder
 
     def get_ephys(self) -> si.BaseRecording:
-
         path_to_ephys = self.get_ephys_path()
         recording = si.read_openephys(path_to_ephys, stream_id="CH")
 
@@ -72,7 +68,6 @@ class TerisSession(BaseSession):
         return recording
 
     def get_clusters(self) -> nap.TsGroup:
-
         if (clusters := self.cache.get("clusters")) is not None:
             return clusters
 
@@ -93,8 +88,7 @@ class TerisSession(BaseSession):
         self.cache["clusters"] = spikes_frame
         return spikes_frame
 
-    def get_position(self) -> PositionDict:
-
+    def get_position(self):
         if (positions := self.cache.get("positions")) is not None:
             return positions
 
@@ -108,7 +102,7 @@ class TerisSession(BaseSession):
             t=position_df["synced_time"].values, d=position_df["position_y"].values
         )
 
-        beh_dict = PositionDict(Px=Px, Py=Py)
+        beh_dict = {"Px": Px, "Py": Py}
 
         self.cache["positions"] = beh_dict
         return beh_dict
