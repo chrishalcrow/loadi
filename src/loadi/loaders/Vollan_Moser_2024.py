@@ -141,7 +141,7 @@ class VollanMoser2024Session(BaseSession):
             warnings.warn("Sleep sessions have no position data.")
             return None
 
-        data_to_load = ["x", "y", "z", "hd", "theta"]
+        data_to_load = ["x", "y", "z", "hd", "theta", "speed"]
 
         data = [
             np.transpose(self.session_data[data_type])[0] for data_type in data_to_load
