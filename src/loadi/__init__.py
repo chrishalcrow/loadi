@@ -1,7 +1,21 @@
-from loadi.loaders.Nagelhus_Moser_2023 import NagelhusMoser2023Experiment
-from loadi.loaders.Kanter_Moser_2025 import KanterMoser2025Experiment
-from loadi.loaders.Dandi import DandiExperiment
-from loadi.loaders.Vandrey_2026 import Vandrey2026Experiment
-from loadi.loaders.Clark_2026 import Clark2026Experiment
-from loadi.loaders.Wills_Muessing_2023 import WillsMuessig2023Experiment
-from loadi.loaders.Vollan_Moser_2024 import VollanMoser2024Experiment
+from importlib.metadata import entry_points
+
+from .loaders import (
+    DandiExperiment,
+    KanterMoser2025Experiment,
+    NagelhusMoser2023Experiment,
+    VollanMoser2024Experiment,
+    WillsMuessig2023Experiment,
+)
+
+
+def __getattr__(name):
+    # Search for installed plugins in the 'loadi.experiments' group
+    plugins = entry_points(group="loadi.experiments")
+
+    for ep in plugins:
+        # Check if the requested name matches the plugin name
+        if ep.name == name:
+            return ep.load()
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
