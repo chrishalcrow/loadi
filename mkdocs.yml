@@ -1,0 +1,16 @@
+site_name: loadi
+theme:
+  name: material
+  features:
+    - navigation.sections  # Groups your nav into tidy sections
+    - navigation.expand    # Keeps everything visible
+
+nav:
+  - Welcome: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quickstart: basic-usage.md
+  - How To:
+      - Investigate an experiment: investigate.md
+      - Add a new experiment: contribute.md
+      - Work with your own data locally: plugin.md
