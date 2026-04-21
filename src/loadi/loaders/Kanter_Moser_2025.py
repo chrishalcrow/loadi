@@ -2,9 +2,7 @@ import json
 from importlib import resources
 from pathlib import Path
 
-import numpy as np
 import pynapple as nap
-from scipy.io import loadmat
 
 from .base import BaseExperiment, BaseSession
 
