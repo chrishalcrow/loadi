@@ -57,10 +57,6 @@ class VollanMoser2024Experiment(BaseExperiment):
         self.session_class = VollanMoser2024Session
 
     def get_session(self, subject_id, session_name):
-        # if subject_id == '24666' and session_name == 'of_1':
-        #     warnings.warn('Something wrong with this one...')
-        #     return None
-
         if isinstance(subject_id, int):
             subject_id = str(subject_id)
 
