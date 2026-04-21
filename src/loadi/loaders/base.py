@@ -1,4 +1,7 @@
+import inspect
 import uuid
+from importlib.metadata import entry_points
+from pathlib import Path
 
 
 class BaseExperiment:
@@ -69,7 +72,7 @@ class BaseExperiment:
                 # Standard leaf node (indented to match the arrow spacing)
                 html += f"""
                 <div style="margin-left: 18px; margin-bottom: 2px;">
-                    <span class="key-text">{key}</span>: {value}
+                    <span class="key-text">{key}</span>
                 </div>
                 """
         html += "</div>"
@@ -93,9 +96,7 @@ class BaseExperiment:
                 lines.append(self._generate_terminal_tree(value, next_indent))
             else:
                 # Leaf node
-                lines.append(
-                    f"{indent}{connector}\033[1m{key}\033[0m: loadable data: {value}"
-                )
+                lines.append(f"{indent}{connector}\033[1m{key}\033[0m")
 
         return "\n".join(lines)
 
@@ -115,5 +116,33 @@ class BaseExperiment:
 
 
 class BaseSession:
-    def load_units(self):
-        pass
+    def __repr__(self):
+        sig = inspect.signature(self.__class__.__init__)
+        params = [p for p in sig.parameters if p != "self"]
+
+        rows = ""
+        for p in params:
+            val = getattr(self, p, "None")
+            if isinstance(val, Path):
+                val = str(val)
+            rows += f"{p: <15} {repr(val)}\n"
+
+        return rows
+
+    def _repr_html_(self):
+        sig = inspect.signature(self.__class__.__init__)
+        params = [p for p in sig.parameters if p != "self"]
+
+        # Build a clean, courier-style list
+        rows = []
+        for p in params:
+            val = getattr(self, p, "None")
+            if isinstance(val, Path):
+                val = str(val)
+            rows.append(f"<strong>{p:.<15}</strong> {repr(val)}")
+
+        return f"""
+        <div style="font-family: 'Courier New', Courier, monospace;">
+            {"<br>".join(rows)}
+        </div>
+        """
