@@ -1,5 +1,6 @@
 from .Dandi import DandiExperiment
 from .Kanter_Moser_2025 import KanterMoser2025Experiment
+from .Krupic_Burton_2023 import KrupicBurton2023Experiment
 from .Nagelhus_Moser_2023 import NagelhusMoser2023Experiment
 from .Vollan_Moser_2024 import VollanMoser2024Experiment
 from .Wills_Muessing_2023 import WillsMuessig2023Experiment

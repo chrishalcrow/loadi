@@ -3,6 +3,7 @@ from importlib.metadata import entry_points
 from .loaders import (
     DandiExperiment,
     KanterMoser2025Experiment,
+    KrupicBurton2023Experiment,
     NagelhusMoser2023Experiment,
     VollanMoser2024Experiment,
     WillsMuessig2023Experiment,
