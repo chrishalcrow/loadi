@@ -1,4 +1,5 @@
 import json
+import re
 from importlib import resources
 from pathlib import Path
 from typing import Literal
@@ -98,7 +99,13 @@ class KrupicBurton2023Session(BaseSession):
         cell_types = []
         for datapath, cell_data in zip(self.datapaths, self.data):
             data_path_split = datapath.name.split(".")[0].split("_")
-            cell_id = data_path_split[3][4:]
+            cell_id = re.compile(r'cell(\d+)').search(datapath.name)
+
+            if cell_id:
+                cell_id = cell_id.group(1)
+            else:
+                continue
+
             if len(data_path_split) == 5:
                 cell_type = data_path_split[4]
             else:
@@ -127,3 +134,4 @@ class KrupicBurton2023Session(BaseSession):
         beh_frame = nap.TsdFrame(t=timestamps, d=beh_data)
 
         return beh_frame
+
