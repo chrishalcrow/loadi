@@ -12,9 +12,9 @@ dependencies = [
     "ipykernel>=7.2.0",
     "pandas>=2.3.3",
     "pymatreader>=1.2.2",
-    "pynapple>=0.10.2",
     "pyqt5>=5.15.11",
     "pyqtgraph>=0.14.0",
+    "requests>=2.34.2",
 ]
 
 [project.scripts]
