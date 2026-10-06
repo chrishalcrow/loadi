@@ -2,6 +2,7 @@ import json
 from importlib import resources
 from pathlib import Path
 
+import h5py
 import numpy as np
 import pynapple as nap
 from pymatreader import read_mat
@@ -80,82 +81,136 @@ class WillsMuessig2023Experiment(BaseExperiment):
                     )
 
 
+def _decode_matlab_string(dataset: h5py.Dataset) -> str:
+    values = np.asarray(dataset[()]).ravel()
+    return "".join(chr(int(value)) for value in values if value).strip()
+
+
+def _get_table_column(
+    file: h5py.File,
+    column_index: int,
+) -> h5py.Dataset:
+    mcos = file["#subsystem#/MCOS"]
+    columns = file[mcos[0, 2]]
+    return file[columns[column_index, 0]]
+
+
+def _read_string_column(
+    file: h5py.File,
+    column_index: int,
+) -> list[str]:
+    column = _get_table_column(file, column_index)
+
+    return [_decode_matlab_string(file[reference]) for reference in column[()].ravel()]
+
+
+def load_spikes(
+    path: Path,
+    mouseday_id: str,
+    session_index: int,
+) -> list[np.ndarray]:
+    with h5py.File(path, "r") as file:
+        cell_ids = _read_string_column(file, column_index=0)
+        spike_column = _get_table_column(file, column_index=23)
+        spike_references = spike_column[()].ravel()
+
+        cell_indices = [
+            index
+            for index, cell_id in enumerate(cell_ids)
+            if cell_id.split(maxsplit=1)[0] == mouseday_id
+        ]
+
+        offset = session_index * len(cell_ids)
+
+        return [
+            np.asarray(file[spike_references[offset + cell_index]][()]).ravel()
+            for cell_index in cell_indices
+        ]
+
+
+def load_spatial_data(
+    path: Path,
+    mouseday_id: str,
+    session_index: int,
+    column_index: int,
+) -> np.ndarray:
+    with h5py.File(path, "r") as file:
+        mouseday_ids = _read_string_column(file, column_index=0)
+        mouseday_index = mouseday_ids.index(mouseday_id)
+
+        value_column = _get_table_column(file, column_index)
+        value_references = value_column[()].ravel()
+
+        value_index = session_index * len(mouseday_ids) + mouseday_index
+        values = np.asarray(file[value_references[value_index]][()])
+
+    if values.ndim == 2 and values.shape[0] == 2:
+        values = values.T
+
+    return values
+
+
 class WillsMuessig2023Session(BaseSession):
+    position_sampling_rate = 50
+
     def __init__(
         self,
-        mouse,
-        date,
-        session,
-        known_data_types: list = [],
-        containing_folder: Path = Path(""),
-    ):
+        mouse: str,
+        date: str,
+        session: str,
+        known_data_types: list[str] | None = None,
+        containing_folder: Path = Path(),
+    ) -> None:
         self.mouse = mouse
         self.date = date
         self.session = session
-
         self.cache = {}
-        self.known_data_types = known_data_types
+        self.known_data_types = known_data_types or []
 
-        self.position_data = read_mat(containing_folder / "Position_data.mat")
-        self.spike_data = read_mat(containing_folder / "Results.mat")
+        self._position_path = containing_folder / "Position_data.mat"
+        self._results_path = containing_folder / "Results.mat"
 
-    def _repr_html_(self):
-        header_text = f"<b>Mouse</b> {self.mouse}, <b>Date</b> {self.date}, <b>Session</b> {self.session}<br />"
-        streams_text = f"{self.known_data_types}"
+    def _repr_html_(self) -> str:
+        header = (
+            f"<b>Mouse</b> {self.mouse}, "
+            f"<b>Date</b> {self.date}, "
+            f"<b>Session</b> {self.session}<br />"
+        )
+        return header + str(self.known_data_types)
 
-        return header_text + streams_text
+    @property
+    def _mouseday_id(self) -> str:
+        return f"{self.mouse}_{self.date}"
+
+    @property
+    def _session_index(self) -> int:
+        return int(self.session.rsplit("_", maxsplit=1)[-1])
 
     def load_units(self) -> nap.TsGroup:
-        mouseday_id = f"{self.mouse}_{self.date}"
-        session_index = int(self.session.split("_")[-1])
+        spike_trains = load_spikes(
+            path=self._results_path,
+            mouseday_id=self._mouseday_id,
+            session_index=self._session_index,
+        )
+        return nap.TsGroup(spike_trains)
 
-        spike_mousedays = self.spike_data["#subsystem#"]["MCOS"][2]
-        all_spike_trains = spike_mousedays[23]
+    def _load_spatial_frame(self, column_index: int) -> nap.TsdFrame:
+        values = load_spatial_data(
+            path=self._position_path,
+            mouseday_id=self._mouseday_id,
+            session_index=self._session_index,
+            column_index=column_index,
+        )
+        times = np.arange(len(values)) / self.position_sampling_rate
 
-        mouseday_id_per_cell = [cell_id.split(" ")[0] for cell_id in spike_mousedays[0]]
-
-        cell_ids_per_mouseday = np.array(mouseday_id_per_cell) == mouseday_id
-
-        unit_spike_trains = []
-        for res_index, res in enumerate(cell_ids_per_mouseday):
-            if res:
-                unit_spike_trains.append(
-                    all_spike_trains[2779 * session_index + res_index]
-                )
-
-        spikes = nap.TsGroup(unit_spike_trains)
-        return spikes
+        return nap.TsdFrame(
+            t=times,
+            d=values,
+            columns=["x", "y"],
+        )
 
     def load_position(self) -> nap.TsdFrame:
-        position_sampling_rate = 50
-        mouseday_id = f"{self.mouse}_{self.date}"
-        session_index = int(self.session.split("_")[-1])
-
-        actual_data = self.position_data["#subsystem#"]["MCOS"][2]
-
-        mouseday_index = actual_data[0].index(mouseday_id)
-        position = actual_data[2][session_index * 367 + mouseday_index]
-
-        times = np.arange(
-            0, len(position) / position_sampling_rate, 1 / position_sampling_rate
-        )
-        position = nap.TsdFrame(t=times, d=position, columns=["x", "y"])
-
-        return position
+        return self._load_spatial_frame(column_index=2)
 
     def load_direction(self) -> nap.TsdFrame:
-        position_sampling_rate = 50
-        mouseday_id = f"{self.mouse}_{self.date}"
-        session_index = int(self.session.split("_")[-1])
-
-        actual_data = self.position_data["#subsystem#"]["MCOS"][2]
-
-        mouseday_index = actual_data[0].index(mouseday_id)
-        direction = actual_data[3][session_index * 367 + mouseday_index]
-
-        times = np.arange(
-            0, len(direction) / position_sampling_rate, 1 / position_sampling_rate
-        )
-        direction = nap.TsdFrame(t=times, d=direction, columns=["x", "y"])
-
-        return direction
+        return self._load_spatial_frame(column_index=3)
